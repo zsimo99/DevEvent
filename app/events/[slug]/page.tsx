@@ -2,6 +2,7 @@ import BookEvent from "@/components/BookEvent";
 import EventCard from "@/components/EventCard";
 import { IEvent } from "@/database/event.model";
 import { getSimilarEventsBySlug } from "@/lib/actions/event.actions";
+import { cacheLife } from "next/cache";
 import Image from "next/image";
 
 const EventDetails = ({
@@ -41,10 +42,13 @@ const EventTags = ({ tags }: { tags: string[] }) => (
 );
 
 async function page({ params }: { params: Promise<{ slug: string }> }) {
-  
+  "use cache";
+  cacheLife("hours");
+
   const { slug } = await params;
   const {
     data: {
+      _id,
       title,
       description,
       overview,
@@ -125,16 +129,17 @@ async function page({ params }: { params: Promise<{ slug: string }> }) {
               <p className="text-sm">Be the first to book your spot!</p>
             )}
 
-            <BookEvent />
+            <BookEvent eventId={_id.toString()} slug={slug} />
           </div>
         </aside>
       </div>
-      <div style={{flexDirection:"column"}} className="flex gap-4 mt-8">
+      <div style={{ flexDirection: "column" }} className="flex gap-4 mt-8">
         <h2>Similar Events You May Like</h2>
         <div className="events">
-            {similarEvents.map((similarEvent:IEvent) => <EventCard key={similarEvent._id.toString()} {...similarEvent}/>
-            )}
-          </div>
+          {similarEvents.map((similarEvent: IEvent) => (
+            <EventCard key={similarEvent._id.toString()} {...similarEvent} />
+          ))}
+        </div>
       </div>
     </section>
   );
